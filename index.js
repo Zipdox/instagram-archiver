@@ -64,22 +64,24 @@ var ig;
             for(post of userPosts){
                 process.stdout.cursorTo(0);
                 if(postsLeft > 0) process.stdout.write('Posts left: ' + postsLeft);
-                if(savedPosts.includes(`${post.pk}`)) continue;
-                await fs.promises.mkdir(`download/${account.pk}/posts/${post.pk}/`, {recursive: true}).catch(err => {return});
-                await fs.promises.writeFile(`download/${account.pk}/posts/${post.pk}/info.json`, JSON.stringify(post, null, 4)).catch(err => {console.error(err)});
-                if(post.image_versions2 != undefined){
-                    let postMedia = await fetchMedia(post);
-                    await fs.promises.writeFile(`download/${account.pk}/posts/${post.pk}/${postMedia.filename}`, postMedia.data).catch(err => {console.error(err)});
-                }else if(post.carousel_media != undefined){
-                    for(postPart of post.carousel_media){
-                        let postMedia = await fetchMedia(postPart);
+                if(!savedPosts.includes(`${post.pk}`)){
+                    await fs.promises.mkdir(`download/${account.pk}/posts/${post.pk}/`, {recursive: true}).catch(err => {return});
+                    await fs.promises.writeFile(`download/${account.pk}/posts/${post.pk}/info.json`, JSON.stringify(post, null, 4)).catch(err => {console.error(err)});
+                    if(post.image_versions2 != undefined){
+                        let postMedia = await fetchMedia(post);
                         await fs.promises.writeFile(`download/${account.pk}/posts/${post.pk}/${postMedia.filename}`, postMedia.data).catch(err => {console.error(err)});
+                    }else if(post.carousel_media != undefined){
+                        for(postPart of post.carousel_media){
+                            let postMedia = await fetchMedia(postPart);
+                            await fs.promises.writeFile(`download/${account.pk}/posts/${post.pk}/${postMedia.filename}`, postMedia.data).catch(err => {console.error(err)});
+                        }
                     }
                 }
+                
                 postsLeft--;
                 process.stdout.clearLine();
             }
-            process.stdout.write('\n');
+            console.log();
         }
     });
 
